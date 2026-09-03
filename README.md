@@ -60,6 +60,9 @@ A API estará em `http://localhost:3000`.
 - `GET /ordens-servico`
 - `PUT /login`
 - `PUT /usuarios`
+- `POST /autenticacao/login`
+- `POST /autenticacao/refresh`
+- `POST /autenticacao/logout`
 
 ## Próximos módulos
 

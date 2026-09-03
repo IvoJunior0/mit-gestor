@@ -42,87 +42,101 @@ enum Prioridade {
 }
 
 model Usuario {
-  id                  String        @id @default(uuid())
-  nome                String
-  email               String        @unique
-  senha               String
-  tipo                TipoUsuario
-  criadoEm            DateTime      @default(now())
-  ordensServico       OrdemServico[] @relation("TecnicoResponsavel")
+  id            String         @id @default(uuid())
+  nome          String
+  email         String         @unique
+  senha         String
+  tipo          TipoUsuario
+  criadoEm      DateTime       @default(now())
+  sessoes       Sessao[]
+  ordensServico OrdemServico[] @relation("TecnicoResponsavel")
 }
 
 model Setor {
-  id                  String        @id @default(uuid())
-  nome                String        @unique
-  descricao           String?
-  criadoEm            DateTime      @default(now())
-  maquinas            Maquina[]
+  id        String    @id @default(uuid())
+  nome      String    @unique
+  descricao String?
+  criadoEm  DateTime  @default(now())
+  maquinas  Maquina[]
 }
 
 model Maquina {
-  id                  String         @id @default(uuid())
-  codigo              String         @unique
-  nome                String
-  fabricante           String?
-  modelo              String?
-  numeroSerie         String?        @unique
-  horimetro           Int            @default(0)
-  status              StatusMaquina  @default(EM_OPERACAO)
-  setorId             String
-  criadoEm            DateTime       @default(now())
-  atualizadoEm        DateTime       @updatedAt
-  setor               Setor          @relation(fields: [setorId], references: [id])
-  ordensServico       OrdemServico[]
-  manutencoes         Manutencao[]
+  id            String         @id @default(uuid())
+  codigo        String         @unique
+  nome          String
+  fabricante    String?
+  modelo        String?
+  numeroSerie   String?        @unique
+  horimetro     Int            @default(0)
+  status        StatusMaquina  @default(EM_OPERACAO)
+  setorId       String
+  criadoEm      DateTime       @default(now())
+  atualizadoEm  DateTime       @updatedAt
+  setor         Setor          @relation(fields: [setorId], references: [id])
+  ordensServico OrdemServico[]
+  manutencoes   Manutencao[]
 }
 
 model Peca {
-  id                  String             @id @default(uuid())
-  codigo              String             @unique
-  nome                String
-  quantidadeEstoque   Int                @default(0)
-  estoqueMinimo       Int                @default(0)
-  unidadeMedida       String
-  criadoEm            DateTime           @default(now())
-  atualizadoEm        DateTime           @updatedAt
-  itensOrdemServico   ItemOrdemServico[]
+  id                String             @id @default(uuid())
+  codigo            String             @unique
+  nome              String
+  quantidadeEstoque Int                @default(0)
+  estoqueMinimo     Int                @default(0)
+  unidadeMedida     String
+  criadoEm          DateTime           @default(now())
+  atualizadoEm      DateTime           @updatedAt
+  itensOrdemServico ItemOrdemServico[]
 }
 
 model OrdemServico {
-  id                    String              @id @default(uuid())
-  descricao             String
-  prioridade             Prioridade
-  status                 StatusOrdemServico @default(ABERTA)
-  maquinaId              String
-  tecnicoResponsavelId  String?
-  criadoEm               DateTime            @default(now())
-  iniciadoEm             DateTime?
-  concluidoEm            DateTime?
-  maquina                Maquina             @relation(fields: [maquinaId], references: [id])
-  tecnicoResponsavel     Usuario?            @relation("TecnicoResponsavel", fields: [tecnicoResponsavelId], references: [id])
-  itens                  ItemOrdemServico[]
-  manutencao             Manutencao?
+  id                   String             @id @default(uuid())
+  descricao            String
+  prioridade           Prioridade
+  status               StatusOrdemServico @default(ABERTA)
+  maquinaId            String
+  tecnicoResponsavelId String?
+  criadoEm             DateTime           @default(now())
+  iniciadoEm           DateTime?
+  concluidoEm          DateTime?
+  maquina              Maquina            @relation(fields: [maquinaId], references: [id])
+  tecnicoResponsavel   Usuario?           @relation("TecnicoResponsavel", fields: [tecnicoResponsavelId], references: [id])
+  itens                ItemOrdemServico[]
+  manutencao           Manutencao?
 }
 
 model Manutencao {
-  id                String          @id @default(uuid())
+  id                String         @id @default(uuid())
   tipo              TipoManutencao
   descricao         String
   maquinaId         String
-  ordemServicoId    String?         @unique
-  realizadaEm       DateTime        @default(now())
+  ordemServicoId    String?        @unique
+  realizadaEm       DateTime       @default(now())
   proximaManutencao DateTime?
-  maquina           Maquina         @relation(fields: [maquinaId], references: [id])
-  ordemServico      OrdemServico?   @relation(fields: [ordemServicoId], references: [id])
+  maquina           Maquina        @relation(fields: [maquinaId], references: [id])
+  ordemServico      OrdemServico?  @relation(fields: [ordemServicoId], references: [id])
 }
 
 model ItemOrdemServico {
-  id              String        @id @default(uuid())
-  quantidade      Int
-  ordemServicoId  String
-  pecaId          String
-  ordemServico    OrdemServico @relation(fields: [ordemServicoId], references: [id])
-  peca            Peca          @relation(fields: [pecaId], references: [id])
+  id             String       @id @default(uuid())
+  quantidade     Int
+  ordemServicoId String
+  pecaId         String
+  ordemServico   OrdemServico @relation(fields: [ordemServicoId], references: [id])
+  peca           Peca         @relation(fields: [pecaId], references: [id])
 
   @@unique([ordemServicoId, pecaId])
+}
+
+model Sessao {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  usuarioId  String
+  expiraEm   DateTime
+  revogadaEm DateTime?
+  criadaEm   DateTime  @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
 }

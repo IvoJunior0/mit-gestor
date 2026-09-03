@@ -11,7 +11,7 @@ app.use(express.json());
 app.use("/usuarios", usuarioRotas);
 app.use("/autenticacao", autenticacaoRotas);
 
-// Todas as rotas do projeto com seus métodos HTTP. 
+// Todas as rotas do projeto com seus métodos HTTP.
 app.get("/saude", async (_req, res) => {
     try {
         await prisma.$queryRaw`SELECT 1`;
@@ -29,26 +29,36 @@ app.get("/setores", autenticar, async (_req, res) => {
     res.json(setores);
 });
 
-app.get("/maquinas", autenticar, async (_req, res) => {
-    const maquinas = await prisma.maquina.findMany({
-        include: { setor: true },
-        orderBy: { codigo: "asc" },
-    });
-    res.json(maquinas);
-});
+app.get(
+    "/maquinas",
+    autenticar,
+    autorizar("ADMINISTRADOR", "GESTOR"),
+    async (_req, res) => {
+        const maquinas = await prisma.maquina.findMany({
+            include: { setor: true },
+            orderBy: { codigo: "asc" },
+        });
+        res.json(maquinas);
+    },
+);
 
-app.get("/ordens-servico", autenticar, async (_req, res) => {
-    const ordens = await prisma.ordemServico.findMany({
-        include: {
-            maquina: true,
-            tecnicoResponsavel: true,
-            itens: { include: { peca: true } },
-            manutencao: true,
-        },
-        orderBy: { criadoEm: "desc" },
-    });
-    res.json(ordens);
-});
+app.get(
+    "/ordens-servico",
+    autenticar,
+    autorizar("ADMINISTRADOR", "GESTOR", "TECNICO"),
+    async (_req, res) => {
+        const ordens = await prisma.ordemServico.findMany({
+            include: {
+                maquina: true,
+                tecnicoResponsavel: true,
+                itens: { include: { peca: true } },
+                manutencao: true,
+            },
+            orderBy: { criadoEm: "desc" },
+        });
+        res.json(ordens);
+    },
+);
 
 app.use((_req, res) => {
     res.status(404).json({ erro: "Rota não encontrada" });
