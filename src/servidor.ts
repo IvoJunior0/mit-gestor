@@ -1,10 +1,13 @@
 import "dotenv/config";
 import express from "express";
 import { prisma } from "./prisma";
+import usuarioRotas from "./usuarios/usuario.rotas";
 
 const app = express();
 app.use(express.json());
+app.use("/usuarios", usuarioRotas);
 
+// Todas as rotas do projeto com seus métodos HTTP. 
 app.get("/saude", async (_req, res) => {
     try {
         await prisma.$queryRaw`SELECT 1`;
