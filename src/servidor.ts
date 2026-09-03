@@ -2,10 +2,13 @@ import "dotenv/config";
 import express from "express";
 import { prisma } from "./prisma";
 import usuarioRotas from "./usuarios/usuario.rotas";
+import autenticacaoRotas from "./autenticacao/autenticacao.rotas";
+import { autenticar } from "./autenticacao/autenticacao.middleware";
 
 const app = express();
 app.use(express.json());
 app.use("/usuarios", usuarioRotas);
+app.use("/autenticacao", autenticacaoRotas);
 
 // Todas as rotas do projeto com seus métodos HTTP. 
 app.get("/saude", async (_req, res) => {
@@ -17,7 +20,7 @@ app.get("/saude", async (_req, res) => {
     }
 });
 
-app.get("/setores", async (_req, res) => {
+app.get("/setores", autenticar, async (_req, res) => {
     const setores = await prisma.setor.findMany({
         include: { maquinas: true },
         orderBy: { nome: "asc" },
@@ -25,7 +28,7 @@ app.get("/setores", async (_req, res) => {
     res.json(setores);
 });
 
-app.get("/maquinas", async (_req, res) => {
+app.get("/maquinas", autenticar, async (_req, res) => {
     const maquinas = await prisma.maquina.findMany({
         include: { setor: true },
         orderBy: { codigo: "asc" },
@@ -33,7 +36,7 @@ app.get("/maquinas", async (_req, res) => {
     res.json(maquinas);
 });
 
-app.get("/ordens-servico", async (_req, res) => {
+app.get("/ordens-servico", autenticar, async (_req, res) => {
     const ordens = await prisma.ordemServico.findMany({
         include: {
             maquina: true,

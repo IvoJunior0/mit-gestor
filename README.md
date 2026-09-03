@@ -58,10 +58,11 @@ A API estará em `http://localhost:3000`.
 - `GET /setores`
 - `GET /maquinas`
 - `GET /ordens-servico`
+- `PUT /login`
+- `PUT /usuarios`
 
 ## Próximos módulos
 
-- Autenticação e autorização
 - CRUD de setores e máquinas
 - Abertura e gerenciamento de ordens de serviço
 - Manutenção preventiva e corretiva
