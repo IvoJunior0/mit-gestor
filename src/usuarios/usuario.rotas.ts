@@ -4,7 +4,7 @@ import { criarUsuarioSchema } from "./usuario.schema";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/",  async (req, res) => {
     const resultado = criarUsuarioSchema.safeParse(req.body);
 
     if (!resultado.success) {

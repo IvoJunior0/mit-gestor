@@ -4,6 +4,7 @@ import { prisma } from "./prisma";
 import usuarioRotas from "./usuarios/usuario.rotas";
 import autenticacaoRotas from "./autenticacao/autenticacao.rotas";
 import { autenticar } from "./autenticacao/autenticacao.middleware";
+import { autorizar } from "./autenticacao/autorizacao.middleware";
 
 const app = express();
 app.use(express.json());
