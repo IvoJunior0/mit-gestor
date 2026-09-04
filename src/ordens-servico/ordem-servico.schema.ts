@@ -21,3 +21,15 @@ export const atualizarOrdemServicoSchema = z.object({
         .optional(),
     responsavelId: z.string().nullable().optional(),
 });
+
+export const adicionarPecaOrdemServicoSchema = z.object({
+    pecaId: z.uuid(),
+    quantidade: z
+        .number()
+        .int("A quantidade deve ser um número inteiro")
+        .positive("A quantidade deve ser maior que zero"),
+});
+
+export type AdicionarPecaOrdemServicoDados = z.infer<
+    typeof adicionarPecaOrdemServicoSchema
+>;

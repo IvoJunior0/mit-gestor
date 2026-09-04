@@ -2,6 +2,9 @@ import { Router } from "express";
 import { prisma } from "../prisma";
 import { autenticar } from "../autenticacao/autenticacao.middleware";
 import { autorizar } from "../autenticacao/autorizacao.middleware";
+import { Request, Response } from "express";
+import { adicionarPecaOrdemServicoSchema } from "./ordem-servico.schema";
+import { adicionarPecaNaOrdemServico } from "./ordem-servico.servico";
 
 import {
     criarOrdemServico,
@@ -76,6 +79,34 @@ router.post(
         } catch (erro) {
             if (erro instanceof Error) {
                 return res.status(404).json({
+                    erro: erro.message,
+                });
+            }
+
+            return res.status(500).json({
+                erro: "Erro interno do servidor",
+            });
+        }
+    },
+);
+
+router.post(
+    "/:ordemServicoId/pecas",
+    autenticar,
+    autorizar("ADMINISTRADOR", "GESTOR", "TECNICO"),
+    async (req: Request, res: Response) => {
+        try {
+            const dados = adicionarPecaOrdemServicoSchema.parse(req.body);
+
+            const item = await adicionarPecaNaOrdemServico(
+                req.params.ordemServicoId as string,
+                dados,
+            );
+
+            return res.status(201).json(item);
+        } catch (erro) {
+            if (erro instanceof Error) {
+                return res.status(400).json({
                     erro: erro.message,
                 });
             }
