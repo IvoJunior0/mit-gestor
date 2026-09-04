@@ -1,15 +1,17 @@
 import "dotenv/config";
 import express from "express";
 import { prisma } from "./prisma";
+
 import usuarioRotas from "./usuarios/usuario.rotas";
 import autenticacaoRotas from "./autenticacao/autenticacao.rotas";
-import { autenticar } from "./autenticacao/autenticacao.middleware";
-import { autorizar } from "./autenticacao/autorizacao.middleware";
+import setorRotas from "./setores/setor.rotas";
+import maquinaRotas from "./maquinas/maquina.rotas";
+import pecaRotas from "./pecas/peca.rotas";
+import ordemServicoRotas from "./ordens-servico/ordem-servico.rotas";
+import manutencaoRotas from "./manutencoes/manutencao.rotas";
 
 const app = express();
 app.use(express.json());
-app.use("/usuarios", usuarioRotas);
-app.use("/autenticacao", autenticacaoRotas);
 
 // Todas as rotas do projeto com seus métodos HTTP.
 app.get("/saude", async (_req, res) => {
@@ -21,44 +23,13 @@ app.get("/saude", async (_req, res) => {
     }
 });
 
-app.get("/setores", autenticar, async (_req, res) => {
-    const setores = await prisma.setor.findMany({
-        include: { maquinas: true },
-        orderBy: { nome: "asc" },
-    });
-    res.json(setores);
-});
-
-app.get(
-    "/maquinas",
-    autenticar,
-    autorizar("ADMINISTRADOR", "GESTOR"),
-    async (_req, res) => {
-        const maquinas = await prisma.maquina.findMany({
-            include: { setor: true },
-            orderBy: { codigo: "asc" },
-        });
-        res.json(maquinas);
-    },
-);
-
-app.get(
-    "/ordens-servico",
-    autenticar,
-    autorizar("ADMINISTRADOR", "GESTOR", "TECNICO"),
-    async (_req, res) => {
-        const ordens = await prisma.ordemServico.findMany({
-            include: {
-                maquina: true,
-                tecnicoResponsavel: true,
-                itens: { include: { peca: true } },
-                manutencao: true,
-            },
-            orderBy: { criadoEm: "desc" },
-        });
-        res.json(ordens);
-    },
-);
+app.use("/usuarios", usuarioRotas);
+app.use("/autenticacao", autenticacaoRotas);
+app.use("/setores", setorRotas);
+app.use("/maquinas", maquinaRotas);
+app.use("/pecas", pecaRotas);
+app.use("/ordens-servico", ordemServicoRotas);
+app.use("/manutencoes", manutencaoRotas);
 
 app.use((_req, res) => {
     res.status(404).json({ erro: "Rota não encontrada" });
