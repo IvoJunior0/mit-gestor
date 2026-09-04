@@ -3,16 +3,16 @@ import { prisma } from "../prisma";
 interface CriarPecaDados {
     codigo: string;
     nome: string;
-    descricao?: string;
-    estoque: number;
+    unidadeMedida: string;
+    quantidadeEstoque: number;
     estoqueMinimo: number;
 }
 
 interface AtualizarPecaDados {
     codigo?: string;
     nome?: string;
-    descricao?: string;
-    estoque?: number;
+    unidadeMedida?: string;
+    quantidadeEstoque?: number;
     estoqueMinimo?: number;
 }
 

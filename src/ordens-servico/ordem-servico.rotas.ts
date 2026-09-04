@@ -20,10 +20,10 @@ router.get("/", autenticar, async (_req, res) => {
     const ordens = await prisma.ordemServico.findMany({
         include: {
             maquina: true,
-            responsavel: true,
+            tecnicoResponsavel: true,
         },
         orderBy: {
-            criadaEm: "desc",
+            criadoEm: "desc",
         },
     });
 
@@ -37,7 +37,7 @@ router.get("/:id", autenticar, async (req, res) => {
         where: { id },
         include: {
             maquina: true,
-            responsavel: true,
+            tecnicoResponsavel: true,
             itens: {
                 include: {
                     peca: true,

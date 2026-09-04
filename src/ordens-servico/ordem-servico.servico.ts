@@ -1,7 +1,6 @@
 import { prisma } from "../prisma";
 
 interface CriarOrdemServicoDados {
-    titulo: string;
     descricao: string;
     prioridade: "BAIXA" | "MEDIA" | "ALTA" | "CRITICA";
     maquinaId: string;
@@ -9,7 +8,6 @@ interface CriarOrdemServicoDados {
 }
 
 interface AtualizarOrdemServicoDados {
-    titulo?: string;
     descricao?: string;
     prioridade?: "BAIXA" | "MEDIA" | "ALTA" | "CRITICA";
     status?:
@@ -32,6 +30,21 @@ export async function criarOrdemServico(dados: CriarOrdemServicoDados) {
         throw new Error("Máquina não encontrada");
     }
 
+    const ordemAtiva = await prisma.ordemServico.findFirst({
+        where: {
+            maquinaId: dados.maquinaId,
+            status: {
+                in: ["ABERTA", "EM_ANDAMENTO", "AGUARDANDO_PECA"],
+            },
+        },
+    });
+
+    if (ordemAtiva) {
+        throw new Error(
+            "A máquina já possui uma ordem de serviço em andamento.",
+        );
+    }
+
     if (dados.responsavelId) {
         const responsavel = await prisma.usuario.findUnique({
             where: {
@@ -48,7 +61,7 @@ export async function criarOrdemServico(dados: CriarOrdemServicoDados) {
         data: dados,
         include: {
             maquina: true,
-            responsavel: true,
+            tecnicoResponsavel: true,
         },
     });
 }
@@ -82,7 +95,7 @@ export async function atualizarOrdemServico(
         data: dados,
         include: {
             maquina: true,
-            responsavel: true,
+            tecnicoResponsavel: true,
         },
     });
 }

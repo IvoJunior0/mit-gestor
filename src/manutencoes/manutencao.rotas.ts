@@ -23,7 +23,7 @@ router.get("/", autenticar, async (_req, res) => {
             ordemServico: true,
         },
         orderBy: {
-            dataInicio: "desc",
+            realizadaEm: "desc",
         },
     });
 
