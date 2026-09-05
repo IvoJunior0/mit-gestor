@@ -39,7 +39,7 @@ router.post(
     "/",
     autenticar,
     autorizar("ADMINISTRADOR", "GESTOR"),
-    async (req, res) => {
+    async (req, res, next) => {
         const resultado = criarPecaSchema.safeParse(req.body);
 
         if (!resultado.success) {
@@ -54,15 +54,7 @@ router.post(
 
             return res.status(201).json(peca);
         } catch (erro) {
-            if (erro instanceof Error) {
-                return res.status(409).json({
-                    erro: erro.message,
-                });
-            }
-
-            return res.status(500).json({
-                erro: "Erro interno do servidor",
-            });
+            next(erro);
         }
     },
 );
@@ -71,7 +63,7 @@ router.patch(
     "/:id",
     autenticar,
     autorizar("ADMINISTRADOR", "GESTOR"),
-    async (req, res) => {
+    async (req, res, next) => {
         const resultado = atualizarPecaSchema.safeParse(req.body);
 
         if (!resultado.success) {
@@ -88,21 +80,7 @@ router.patch(
 
             return res.json(peca);
         } catch (erro) {
-            if (erro instanceof Error) {
-                if (erro.message === "Peça não encontrada") {
-                    return res.status(404).json({
-                        erro: erro.message,
-                    });
-                }
-
-                return res.status(409).json({
-                    erro: erro.message,
-                });
-            }
-
-            return res.status(500).json({
-                erro: "Erro interno do servidor",
-            });
+            next(erro);
         }
     },
 );
@@ -111,7 +89,7 @@ router.delete(
     "/:id",
     autenticar,
     autorizar("ADMINISTRADOR"),
-    async (req, res) => {
+    async (req, res, next) => {
         const id = req.params.id as string;
 
         try {
@@ -119,15 +97,7 @@ router.delete(
 
             return res.status(204).send();
         } catch (erro) {
-            if (erro instanceof Error) {
-                return res.status(404).json({
-                    erro: erro.message,
-                });
-            }
-
-            return res.status(500).json({
-                erro: "Erro interno do servidor",
-            });
+            next(erro);
         }
     },
 );

@@ -4,7 +4,7 @@ import { criarUsuarioSchema } from "./usuario.schema";
 
 const router = Router();
 
-router.post("/",  async (req, res) => {
+router.post("/",  async (req, res, next) => {
     const resultado = criarUsuarioSchema.safeParse(req.body);
 
     if (!resultado.success) {
@@ -19,15 +19,7 @@ router.post("/",  async (req, res) => {
 
         return res.status(201).json(usuario);
     } catch (erro) {
-        if (erro instanceof Error) {
-            return res.status(409).json({
-                erro: erro.message,
-            });
-        }
-
-        return res.status(500).json({
-            erro: "Erro interno do servidor",
-        });
+        next(erro);
     }
 });
 

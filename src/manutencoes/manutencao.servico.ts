@@ -1,4 +1,5 @@
 import { prisma } from "../prisma";
+import { RecursoNaoEncontradoError } from "../erros/RecursoNaoEncontradoError";
 
 interface CriarManutencaoDados {
     tipo: "PREVENTIVA" | "CORRETIVA";
@@ -23,7 +24,7 @@ export async function criarManutencao(dados: CriarManutencaoDados) {
     });
 
     if (!maquina) {
-        throw new Error("Máquina não encontrada");
+        throw new RecursoNaoEncontradoError("Máquina não encontrada");
     }
 
     if (dados.ordemServicoId) {
@@ -34,7 +35,7 @@ export async function criarManutencao(dados: CriarManutencaoDados) {
         });
 
         if (!ordem) {
-            throw new Error("Ordem de serviço não encontrada");
+            throw new RecursoNaoEncontradoError("Ordem de serviço não encontrada");
         }
     }
 
@@ -56,7 +57,7 @@ export async function atualizarManutencao(
     });
 
     if (!manutencao) {
-        throw new Error("Manutenção não encontrada");
+        throw new RecursoNaoEncontradoError("Manutenção não encontrada");
     }
 
     return prisma.manutencao.update({
@@ -75,7 +76,7 @@ export async function deletarManutencao(id: string) {
     });
 
     if (!manutencao) {
-        throw new Error("Manutenção não encontrada");
+        throw new RecursoNaoEncontradoError("Manutenção não encontrada");
     }
 
     return prisma.manutencao.delete({

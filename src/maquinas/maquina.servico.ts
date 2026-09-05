@@ -58,7 +58,7 @@ export async function atualizarMaquina(
     });
 
     if (!maquina) {
-        throw new Error("Máquina não encontrada");
+        throw new RecursoNaoEncontradoError("Máquina não encontrada");
     }
 
     if (dados.codigo) {
@@ -72,7 +72,7 @@ export async function atualizarMaquina(
         });
 
         if (codigoExistente) {
-            throw new Error("Já existe uma máquina com este código");
+            throw new ConflitoError("Já existe uma máquina com este código");
         }
     }
 
@@ -84,7 +84,7 @@ export async function atualizarMaquina(
         });
 
         if (!setor) {
-            throw new Error("Setor não encontrado");
+            throw new RecursoNaoEncontradoError("Setor não encontrado");
         }
     }
 
@@ -100,7 +100,7 @@ export async function deletarMaquina(id: string) {
     });
 
     if (!maquina) {
-        throw new Error("Máquina não encontrada");
+        throw new RecursoNaoEncontradoError("Máquina não encontrada");
     }
 
     return prisma.maquina.delete({

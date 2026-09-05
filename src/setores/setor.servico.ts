@@ -1,4 +1,6 @@
 import { prisma } from "../prisma";
+import { ConflitoError } from "../erros/ConflitoError";
+import { RecursoNaoEncontradoError } from "../erros/RecursoNaoEncontradoError";
 
 interface CriarSetorDados {
     nome: string;
@@ -18,7 +20,8 @@ export async function criarSetor(dados: CriarSetorDados) {
     });
 
     if (setorExistente) {
-        throw new Error("Já existe um setor com este nome");
+        throw new ConflitoError("Já existe um setor com este nome");
+        
     }
 
     const setor = await prisma.setor.create({
@@ -39,7 +42,7 @@ export async function atualizarSetor(id: string, dados: AtualizarSetorDados) {
     });
 
     if (!setor) {
-        throw new Error("Setor não encontrado");
+        throw new RecursoNaoEncontradoError("Setor não encontrado");
     }
 
     if (dados.nome) {
@@ -53,7 +56,7 @@ export async function atualizarSetor(id: string, dados: AtualizarSetorDados) {
         });
 
         if (setorComMesmoNome) {
-            throw new Error("Já existe um setor com este nome");
+            throw new ConflitoError("Já existe um setor com este nome");
         }
     }
 
@@ -73,7 +76,7 @@ export async function deletarSetor(id: string) {
     });
 
     if (!setor) {
-        throw new Error("Setor não encontrado");
+        throw new RecursoNaoEncontradoError("Setor não encontrado");
     }
 
     return prisma.setor.delete({

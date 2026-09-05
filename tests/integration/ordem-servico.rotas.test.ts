@@ -115,9 +115,7 @@ describe("POST /ordens-servico", () => {
                 maquinaId: maquina.id,
             });
 
-        // A rota devolve 404 para qualquer erro de negócio em criarOrdemServico,
-        // incluindo esta mensagem (comportamento atual da aplicação).
-        expect(resposta.status).toBe(404);
+        expect(resposta.status).toBe(409);
         expect(resposta.body.erro).toBe(
             "A máquina já possui uma ordem de serviço em andamento.",
         );
@@ -185,7 +183,7 @@ describe("POST /ordens-servico/:ordemServicoId/pecas", () => {
         });
     }
 
-    it("deve retornar 400 quando a OS não existe", async () => {
+    it("deve retornar 404 quando a OS não existe", async () => {
         const { cabecalhoAuth } = await criarUsuarioAutenticadoTeste("TECNICO");
         const peca = await criarPecaTeste({ quantidadeEstoque: 10 });
 
@@ -194,11 +192,11 @@ describe("POST /ordens-servico/:ordemServicoId/pecas", () => {
             .set("Authorization", cabecalhoAuth)
             .send({ pecaId: peca.id, quantidade: 1 });
 
-        expect(resposta.status).toBe(400);
+        expect(resposta.status).toBe(404);
         expect(resposta.body.erro).toBe("Ordem de serviço não encontrada");
     });
 
-    it("deve retornar 400 quando o estoque é insuficiente", async () => {
+    it("deve retornar 409 quando o estoque é insuficiente", async () => {
         const { cabecalhoAuth } = await criarUsuarioAutenticadoTeste("TECNICO");
         const { maquina } = await criarCenarioBasico();
         const ordemServico = await criarOrdemServicoTeste(maquina.id);
@@ -209,7 +207,7 @@ describe("POST /ordens-servico/:ordemServicoId/pecas", () => {
             .set("Authorization", cabecalhoAuth)
             .send({ pecaId: peca.id, quantidade: 5 });
 
-        expect(resposta.status).toBe(400);
+        expect(resposta.status).toBe(409);
         expect(resposta.body.erro).toBe("Estoque insuficiente");
     });
 

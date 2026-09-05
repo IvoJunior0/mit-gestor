@@ -1,6 +1,8 @@
-import { RegraNegocioError } from "../erros/RegraNegocioError";
 import { prisma } from "../prisma";
 import type { AdicionarPecaOrdemServicoDados } from "./ordem-servico.schema";
+import { ConflitoError } from "../erros/ConflitoError";
+import { RecursoNaoEncontradoError } from "../erros/RecursoNaoEncontradoError";
+import { RegraNegocioError } from "../erros/RegraNegocioError";
 
 interface CriarOrdemServicoDados {
     descricao: string;
@@ -44,7 +46,8 @@ export async function criarOrdemServico(dados: CriarOrdemServicoDados) {
     });
 
     if (!maquina) {
-        throw new Error("Máquina não encontrada");
+        throw new RecursoNaoEncontradoError("Máquina não encontrada");
+        
     }
 
     const ordemAtiva = await prisma.ordemServico.findFirst({
@@ -57,9 +60,10 @@ export async function criarOrdemServico(dados: CriarOrdemServicoDados) {
     });
 
     if (ordemAtiva) {
-        throw new Error(
+        throw new ConflitoError(
             "A máquina já possui uma ordem de serviço em andamento.",
         );
+        
     }
 
     if (dados.tecnicoResponsavelId) {
@@ -84,7 +88,7 @@ export async function atualizarOrdemServico(
     });
 
     if (!ordem) {
-        throw new Error("Ordem de serviço não encontrada");
+        throw new RecursoNaoEncontradoError("Ordem de serviço não encontrada");
     }
 
     if (dados.tecnicoResponsavelId) {
@@ -107,7 +111,7 @@ export async function deletarOrdemServico(id: string) {
     });
 
     if (!ordem) {
-        throw new Error("Ordem de serviço não encontrada");
+        throw new RecursoNaoEncontradoError("Ordem de serviço não encontrada");
     }
 
     return prisma.ordemServico.delete({
@@ -127,7 +131,7 @@ export async function adicionarPecaNaOrdemServico(
         });
 
         if (!ordemServico) {
-            throw new Error("Ordem de serviço não encontrada");
+            throw new RecursoNaoEncontradoError("Ordem de serviço não encontrada");
         }
 
         const peca = await tx.peca.findUnique({
@@ -137,7 +141,7 @@ export async function adicionarPecaNaOrdemServico(
         });
 
         if (!peca) {
-            throw new Error("Peça não encontrada");
+            throw new RecursoNaoEncontradoError("Peça não encontrada");
         }
 
         // if (peca.quantidadeEstoque < dados.quantidade) {
@@ -172,7 +176,7 @@ export async function adicionarPecaNaOrdemServico(
         });
 
         if (estoqueAtualizado.count === 0) {
-            throw new Error("Estoque insuficiente");
+            throw new ConflitoError("Estoque insuficiente");
         }
 
         // 5. Verifica se a peça já foi adicionada à OS
@@ -232,7 +236,7 @@ export async function atualizarStatusOrdemServico(
         });
 
         if (!ordemServico) {
-            throw new Error("Ordem de serviço não encontrada");
+            throw new RecursoNaoEncontradoError("Ordem de serviço não encontrada");
         }
 
         validarTransicaoStatus(ordemServico.status, novoStatus);
@@ -242,7 +246,7 @@ export async function atualizarStatusOrdemServico(
             novoStatus === "EM_ANDAMENTO" &&
             !ordemServico.tecnicoResponsavelId
         ) {
-            throw new Error(
+            throw new RegraNegocioError(
                 "A ordem de serviço precisa ter um técnico responsável para ser iniciada",
             );
         }
@@ -336,10 +340,10 @@ async function validarTecnico(tecnicoResponsavelId: string) {
     });
 
     if (!tecnico) {
-        throw new Error("Técnico não encontrado.");
+        throw new RecursoNaoEncontradoError("Técnico não encontrado.");
     }
 
     if (tecnico.tipo !== "TECNICO") {
-        throw new Error("O usuário informado não possui o tipo TECNICO.");
+        throw new RegraNegocioError("O usuário informado não possui o tipo TECNICO.");
     }
 }

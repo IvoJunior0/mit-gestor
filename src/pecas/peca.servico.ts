@@ -1,4 +1,6 @@
 import { prisma } from "../prisma";
+import { ConflitoError } from "../erros/ConflitoError";
+import { RecursoNaoEncontradoError } from "../erros/RecursoNaoEncontradoError";
 
 interface CriarPecaDados {
     codigo: string;
@@ -24,7 +26,8 @@ export async function criarPeca(dados: CriarPecaDados) {
     });
 
     if (pecaExistente) {
-        throw new Error("Já existe uma peça com este código");
+        throw new ConflitoError("Já existe uma peça com este código");
+        
     }
 
     return prisma.peca.create({
@@ -38,7 +41,7 @@ export async function atualizarPeca(id: string, dados: AtualizarPecaDados) {
     });
 
     if (!peca) {
-        throw new Error("Peça não encontrada");
+        throw new RecursoNaoEncontradoError("Peça não encontrada");
     }
 
     if (dados.codigo) {
@@ -52,7 +55,7 @@ export async function atualizarPeca(id: string, dados: AtualizarPecaDados) {
         });
 
         if (codigoExistente) {
-            throw new Error("Já existe uma peça com este código");
+            throw new ConflitoError("Já existe uma peça com este código");
         }
     }
 
@@ -68,7 +71,7 @@ export async function deletarPeca(id: string) {
     });
 
     if (!peca) {
-        throw new Error("Peça não encontrada");
+        throw new RecursoNaoEncontradoError("Peça não encontrada");
     }
 
     return prisma.peca.delete({

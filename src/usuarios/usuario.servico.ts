@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { prisma } from "../prisma";
+import { ConflitoError } from "../erros/ConflitoError";
 
 interface CriarUsuarioDados {
     nome: string;
@@ -16,7 +17,7 @@ export async function criarUsuario(dados: CriarUsuarioDados) {
     });
 
     if (usuarioExistente) {
-        throw new Error("E-mail já cadastrado");
+        throw new ConflitoError("E-mail já cadastrado");
     }
 
     const senhaHash = await bcrypt.hash(dados.senha, 12);
