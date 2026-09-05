@@ -6,6 +6,10 @@ import { Request, Response } from "express";
 import { adicionarPecaOrdemServicoSchema } from "./ordem-servico.schema";
 import { adicionarPecaNaOrdemServico } from "./ordem-servico.servico";
 
+import { z } from "zod";
+import { atualizarStatusOrdemServico } from "./ordem-servico.servico";
+import { atualizarStatusOrdemServicoSchema } from "./ordem-servico.schema";
+
 import {
     criarOrdemServico,
     atualizarOrdemServico,
@@ -139,6 +143,47 @@ router.patch(
 
             return res.json(ordem);
         } catch (erro) {
+            if (erro instanceof Error) {
+                if (erro.message === "Ordem de serviço não encontrada") {
+                    return res.status(404).json({
+                        erro: erro.message,
+                    });
+                }
+
+                return res.status(409).json({
+                    erro: erro.message,
+                });
+            }
+
+            return res.status(500).json({
+                erro: "Erro interno do servidor",
+            });
+        }
+    },
+);
+
+router.patch(
+    "/:id/status",
+    autenticar,
+    autorizar("ADMINISTRADOR", "GESTOR", "TECNICO"),
+    async (req, res) => {
+        try {
+            const dados = atualizarStatusOrdemServicoSchema.parse(req.body);
+
+            const ordemServico = await atualizarStatusOrdemServico(
+                req.params.id as string,
+                dados.status,
+            );
+
+            return res.status(200).json(ordemServico);
+        } catch (erro) {
+            if (erro instanceof z.ZodError) {
+                return res.status(400).json({
+                    erro: "Dados inválidos",
+                    detalhes: erro.issues,
+                });
+            }
+
             if (erro instanceof Error) {
                 if (erro.message === "Ordem de serviço não encontrada") {
                     return res.status(404).json({

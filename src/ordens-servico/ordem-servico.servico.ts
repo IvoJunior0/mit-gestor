@@ -20,6 +20,25 @@ interface AtualizarOrdemServicoDados {
     responsavelId?: string | null;
 }
 
+type StatusOrdemServico =
+    | "ABERTA"
+    | "EM_ANDAMENTO"
+    | "AGUARDANDO_PECA"
+    | "CONCLUIDA"
+    | "CANCELADA";
+
+const transicoesPermitidas: Record<StatusOrdemServico, StatusOrdemServico[]> = {
+    ABERTA: ["EM_ANDAMENTO", "CANCELADA"],
+
+    EM_ANDAMENTO: ["AGUARDANDO_PECA", "CONCLUIDA", "CANCELADA"],
+
+    AGUARDANDO_PECA: ["EM_ANDAMENTO", "CANCELADA"],
+
+    CONCLUIDA: [],
+
+    CANCELADA: [],
+};
+
 export async function criarOrdemServico(dados: CriarOrdemServicoDados) {
     const maquina = await prisma.maquina.findUnique({
         where: {
@@ -218,4 +237,70 @@ export async function adicionarPecaNaOrdemServico(
 
         return item;
     });
+}
+
+export async function atualizarStatusOrdemServico(
+    id: string,
+    novoStatus: StatusOrdemServico,
+) {
+    const ordemServico = await prisma.ordemServico.findUnique({
+        where: {
+            id,
+        },
+    });
+
+    if (!ordemServico) {
+        throw new Error("Ordem de serviço não encontrada");
+    }
+
+    validarTransicaoStatus(ordemServico.status, novoStatus);
+
+    const agora = new Date();
+
+    const dadosAtualizacao: {
+        status: StatusOrdemServico;
+        iniciadoEm?: Date;
+        concluidoEm?: Date;
+    } = {
+        status: novoStatus,
+    };
+
+    // A OS começou a ser executada
+    if (ordemServico.status === "ABERTA" && novoStatus === "EM_ANDAMENTO") {
+        dadosAtualizacao.iniciadoEm = agora;
+    }
+
+    // A OS foi concluída
+    if (ordemServico.status === "EM_ANDAMENTO" && novoStatus === "CONCLUIDA") {
+        dadosAtualizacao.concluidoEm = agora;
+    }
+
+    return prisma.ordemServico.update({
+        where: {
+            id,
+        },
+        data: dadosAtualizacao,
+        include: {
+            maquina: true,
+            tecnicoResponsavel: true,
+            itens: {
+                include: {
+                    peca: true,
+                },
+            },
+        },
+    });
+}
+
+function validarTransicaoStatus(
+    statusAtual: StatusOrdemServico,
+    novoStatus: StatusOrdemServico,
+) {
+    const transicoes = transicoesPermitidas[statusAtual];
+
+    if (!transicoes.includes(novoStatus)) {
+        throw new Error(
+            `Não é possível alterar uma ordem de serviço de ${statusAtual} para ${novoStatus}`,
+        );
+    }
 }

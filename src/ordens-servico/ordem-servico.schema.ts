@@ -33,3 +33,17 @@ export const adicionarPecaOrdemServicoSchema = z.object({
 export type AdicionarPecaOrdemServicoDados = z.infer<
     typeof adicionarPecaOrdemServicoSchema
 >;
+
+export const atualizarStatusOrdemServicoSchema = z.object({
+    status: z.enum([
+        "ABERTA",
+        "EM_ANDAMENTO",
+        "AGUARDANDO_PECA",
+        "CONCLUIDA",
+        "CANCELADA",
+    ]),
+});
+
+export type AtualizarStatusOrdemServicoDados = z.infer<
+    typeof atualizarStatusOrdemServicoSchema
+>;
