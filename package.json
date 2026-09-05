@@ -8,7 +8,9 @@
     "start": "node dist/servidor.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
@@ -25,6 +27,7 @@
     "@types/node": "^24.3.0",
     "prisma": "^6.15.0",
     "tsx": "^4.19.4",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^5.0.0"
   }
 }
