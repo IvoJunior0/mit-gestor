@@ -1,4 +1,6 @@
 import { prisma } from "../prisma";
+import { RecursoNaoEncontradoError } from "../erros/RecursoNaoEncontradoError";
+import { ConflitoError } from "../erros/ConflitoError";
 
 interface CriarMaquinaDados {
     codigo: string;
@@ -29,7 +31,7 @@ export async function criarMaquina(dados: CriarMaquinaDados) {
     });
 
     if (codigoExistente) {
-        throw new Error("Já existe uma máquina com este código");
+        throw new ConflitoError("Já existe uma máquina com este código");
     }
 
     const setor = await prisma.setor.findUnique({
@@ -39,7 +41,7 @@ export async function criarMaquina(dados: CriarMaquinaDados) {
     });
 
     if (!setor) {
-        throw new Error("Setor não encontrado");
+        throw new RecursoNaoEncontradoError("Setor não encontrado.");
     }
 
     return prisma.maquina.create({

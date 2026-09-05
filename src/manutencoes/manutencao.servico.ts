@@ -3,18 +3,16 @@ import { prisma } from "../prisma";
 interface CriarManutencaoDados {
     tipo: "PREVENTIVA" | "CORRETIVA";
     descricao: string;
-    dataInicio: Date;
-    dataFim?: Date;
-    custo?: number;
+    realizadaEm?: Date;
+    proximaManutencao?: Date;
     maquinaId: string;
     ordemServicoId?: string;
 }
 
 interface AtualizarManutencaoDados {
     descricao?: string;
-    dataInicio?: Date;
-    dataFim?: Date | null;
-    custo?: number;
+    realizadaEm?: Date;
+    proximaManutencao?: Date | null;
 }
 
 export async function criarManutencao(dados: CriarManutencaoDados) {

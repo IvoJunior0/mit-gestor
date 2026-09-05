@@ -1,3 +1,4 @@
+import { RegraNegocioError } from "../erros/RegraNegocioError";
 import { prisma } from "../prisma";
 import type { AdicionarPecaOrdemServicoDados } from "./ordem-servico.schema";
 
@@ -321,7 +322,7 @@ function validarTransicaoStatus(
     const transicoes = transicoesPermitidas[statusAtual];
 
     if (!transicoes.includes(novoStatus)) {
-        throw new Error(
+        throw new RegraNegocioError(
             `Não é possível alterar uma ordem de serviço de ${statusAtual} para ${novoStatus}`,
         );
     }

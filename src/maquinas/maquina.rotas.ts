@@ -47,7 +47,7 @@ router.post(
     "/",
     autenticar,
     autorizar("ADMINISTRADOR", "GESTOR"),
-    async (req, res) => {
+    async (req, res, next) => {
         const resultado = criarMaquinaSchema.safeParse(req.body);
 
         if (!resultado.success) {
@@ -62,15 +62,17 @@ router.post(
 
             return res.status(201).json(maquina);
         } catch (erro) {
-            if (erro instanceof Error) {
-                return res.status(409).json({
-                    erro: erro.message,
-                });
-            }
+            // if (erro instanceof Error) {
+            //     return res.status(409).json({
+            //         erro: erro.message,
+            //     });
+            // }
 
-            return res.status(500).json({
-                erro: "Erro interno do servidor",
-            });
+            // return res.status(500).json({
+            //     erro: "Erro interno do servidor",
+            // });
+
+            next(erro);
         }
     },
 );
