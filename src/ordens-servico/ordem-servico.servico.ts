@@ -5,7 +5,7 @@ interface CriarOrdemServicoDados {
     descricao: string;
     prioridade: "BAIXA" | "MEDIA" | "ALTA" | "CRITICA";
     maquinaId: string;
-    responsavelId?: string;
+    tecnicoResponsavelId?: string;
 }
 
 interface AtualizarOrdemServicoDados {
@@ -17,7 +17,7 @@ interface AtualizarOrdemServicoDados {
         | "AGUARDANDO_PECA"
         | "CONCLUIDA"
         | "CANCELADA";
-    responsavelId?: string | null;
+    tecnicoResponsavelId?: string | null;
 }
 
 type StatusOrdemServico =
@@ -61,16 +61,8 @@ export async function criarOrdemServico(dados: CriarOrdemServicoDados) {
         );
     }
 
-    if (dados.responsavelId) {
-        const responsavel = await prisma.usuario.findUnique({
-            where: {
-                id: dados.responsavelId,
-            },
-        });
-
-        if (!responsavel) {
-            throw new Error("Responsável não encontrado");
-        }
+    if (dados.tecnicoResponsavelId) {
+        await validarTecnico(dados.tecnicoResponsavelId);
     }
 
     return prisma.ordemServico.create({
@@ -94,16 +86,8 @@ export async function atualizarOrdemServico(
         throw new Error("Ordem de serviço não encontrada");
     }
 
-    if (dados.responsavelId) {
-        const responsavel = await prisma.usuario.findUnique({
-            where: {
-                id: dados.responsavelId,
-            },
-        });
-
-        if (!responsavel) {
-            throw new Error("Responsável não encontrado");
-        }
+    if (dados.tecnicoResponsavelId) {
+        await validarTecnico(dados.tecnicoResponsavelId);
     }
 
     return prisma.ordemServico.update({
@@ -328,6 +312,8 @@ export async function atualizarStatusOrdemServico(
     });
 }
 
+// Funções reutilizáveis.
+
 function validarTransicaoStatus(
     statusAtual: StatusOrdemServico,
     novoStatus: StatusOrdemServico,
@@ -338,5 +324,21 @@ function validarTransicaoStatus(
         throw new Error(
             `Não é possível alterar uma ordem de serviço de ${statusAtual} para ${novoStatus}`,
         );
+    }
+}
+
+async function validarTecnico(tecnicoResponsavelId: string) {
+    const tecnico = await prisma.usuario.findUnique({
+        where: {
+            id: tecnicoResponsavelId,
+        },
+    });
+
+    if (!tecnico) {
+        throw new Error("Técnico não encontrado.");
+    }
+
+    if (tecnico.tipo !== "TECNICO") {
+        throw new Error("O usuário informado não possui o tipo TECNICO.");
     }
 }

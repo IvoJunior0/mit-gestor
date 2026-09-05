@@ -4,7 +4,7 @@ export const criarOrdemServicoSchema = z.object({
     descricao: z.string().min(3),
     prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"]),
     maquinaId: z.string(),
-    responsavelId: z.string().optional(),
+    tecnicoResponsavelId: z.string().optional(),
 });
 
 export const atualizarOrdemServicoSchema = z.object({
@@ -19,7 +19,7 @@ export const atualizarOrdemServicoSchema = z.object({
             "CANCELADA",
         ])
         .optional(),
-    responsavelId: z.string().nullable().optional(),
+    tecnicoResponsavelId: z.string().nullable().optional(),
 });
 
 export const adicionarPecaOrdemServicoSchema = z.object({
