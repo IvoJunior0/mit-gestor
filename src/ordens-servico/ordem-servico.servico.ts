@@ -29,13 +29,9 @@ type StatusOrdemServico =
 
 const transicoesPermitidas: Record<StatusOrdemServico, StatusOrdemServico[]> = {
     ABERTA: ["EM_ANDAMENTO", "CANCELADA"],
-
     EM_ANDAMENTO: ["AGUARDANDO_PECA", "CONCLUIDA", "CANCELADA"],
-
     AGUARDANDO_PECA: ["EM_ANDAMENTO", "CANCELADA"],
-
     CONCLUIDA: [],
-
     CANCELADA: [],
 };
 
@@ -243,52 +239,92 @@ export async function atualizarStatusOrdemServico(
     id: string,
     novoStatus: StatusOrdemServico,
 ) {
-    const ordemServico = await prisma.ordemServico.findUnique({
-        where: {
-            id,
-        },
-    });
+    return prisma.$transaction(async (tx) => {
+        const ordemServico = await tx.ordemServico.findUnique({
+            where: {
+                id,
+            },
+        });
 
-    if (!ordemServico) {
-        throw new Error("Ordem de serviço não encontrada");
-    }
+        if (!ordemServico) {
+            throw new Error("Ordem de serviço não encontrada");
+        }
 
-    validarTransicaoStatus(ordemServico.status, novoStatus);
+        validarTransicaoStatus(ordemServico.status, novoStatus);
 
-    const agora = new Date();
+        if (
+            ordemServico.status === "ABERTA" &&
+            novoStatus === "EM_ANDAMENTO" &&
+            !ordemServico.tecnicoResponsavelId
+        ) {
+            throw new Error(
+                "A ordem de serviço precisa ter um técnico responsável para ser iniciada",
+            );
+        }
 
-    const dadosAtualizacao: {
-        status: StatusOrdemServico;
-        iniciadoEm?: Date;
-        concluidoEm?: Date;
-    } = {
-        status: novoStatus,
-    };
+        const agora = new Date();
 
-    // A OS começou a ser executada
-    if (ordemServico.status === "ABERTA" && novoStatus === "EM_ANDAMENTO") {
-        dadosAtualizacao.iniciadoEm = agora;
-    }
+        const dadosAtualizacao: {
+            status: StatusOrdemServico;
+            iniciadoEm?: Date;
+            concluidoEm?: Date;
+        } = {
+            status: novoStatus,
+        };
 
-    // A OS foi concluída
-    if (ordemServico.status === "EM_ANDAMENTO" && novoStatus === "CONCLUIDA") {
-        dadosAtualizacao.concluidoEm = agora;
-    }
+        if (ordemServico.status === "ABERTA" && novoStatus === "EM_ANDAMENTO") {
+            dadosAtualizacao.iniciadoEm = agora;
+        }
 
-    return prisma.ordemServico.update({
-        where: {
-            id,
-        },
-        data: dadosAtualizacao,
-        include: {
-            maquina: true,
-            tecnicoResponsavel: true,
-            itens: {
-                include: {
-                    peca: true,
+        if (
+            ordemServico.status === "EM_ANDAMENTO" &&
+            novoStatus === "CONCLUIDA"
+        ) {
+            dadosAtualizacao.concluidoEm = agora;
+        }
+
+        // A manutenção começou
+        if (novoStatus === "EM_ANDAMENTO") {
+            await tx.maquina.update({
+                where: {
+                    id: ordemServico.maquinaId,
+                },
+                data: {
+                    status: "EM_MANUTENCAO",
+                },
+            });
+        }
+
+        // A manutenção terminou ou foi cancelada
+        if (
+            novoStatus === "CONCLUIDA" ||
+            (novoStatus === "CANCELADA" && ordemServico.status !== "ABERTA")
+        ) {
+            await tx.maquina.update({
+                where: {
+                    id: ordemServico.maquinaId,
+                },
+                data: {
+                    status: "EM_OPERACAO",
+                },
+            });
+        }
+
+        return tx.ordemServico.update({
+            where: {
+                id,
+            },
+            data: dadosAtualizacao,
+            include: {
+                maquina: true,
+                tecnicoResponsavel: true,
+                itens: {
+                    include: {
+                        peca: true,
+                    },
                 },
             },
-        },
+        });
     });
 }
 
